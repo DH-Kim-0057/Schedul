@@ -138,31 +138,31 @@
         
         let schedules = {};
         
-// ... (이전 코드)
-// --- Firebase 초기화 및 실시간 데이터 연결 ---
+        // Firebase 관련 변수
+        let db, auth;
+        let schedulesCollection;
+        let unsubscribeSchedules;
 
-        // =======================================================================
-        // 중요! 여기에 자신의 Firebase 프로젝트 설정 정보를 붙여넣으세요.
-        // 이 설정 정보는 Firebase 사이트에서 직접 만드셔야 합니다.
-        // 자세한 방법은 함께 제공된 가이드를 참고하세요.
-        // =======================================================================
+        // --- Firebase 초기화 및 실시간 데이터 연결 ---
+        
+        // 님의 개인 Firebase 프로젝트 설정 정보입니다.
         const firebaseConfig = {
-            apiKey: "AIzaSyCJ6ofXvdg4gkls6IpKenKVY89VHZWShIs",
-            authDomain: "schedule-f8b8a.firebaseapp.com",
-            projectId: "schedule-f8b8a",
-            storageBucket: "schedule-f8b8a.appspot.com", // .firebasestorage.app 이 아니라 .appspot.com 입니다.
-            messagingSenderId: "532907936890",
-            appId: "1:532907936890:web:5b516654ba72d3f5a77fc3",
-            measurementId: "G-RZC9V7L6TS"
+            apiKey: "AIzaSyBKdY101irA4oGILibkt2MzwOEDzRJfm50",
+            authDomain: "schedule-7b99b.firebaseapp.com",
+            projectId: "schedule-7b99b",
+            storageBucket: "schedule-7b99b.appspot.com",
+            messagingSenderId: "461157317346",
+            appId: "1:461157317346:web:68bd1b59ce80184274fcbb",
+            measurementId: "G-3N7BXJK2N7"
         };
-        // =======================================================================
 
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            const appId = firebaseConfig.projectId;
-            const collectionPath = `/artifacts/${appId}/public/data/schedules_shared`;
+            
+            // 공용 데이터를 저장할 경로 설정
+            const collectionPath = `/shared-schedules/${firebaseConfig.projectId}/events`;
             schedulesCollection = collection(db, collectionPath);
 
             onAuthStateChanged(auth, (user) => {
@@ -397,3 +397,20 @@
     </script>
 </body>
 </html>
+```
+
+### 2. 적용 및 업로드 방법
+
+이제 이 코드를 GitHub에 올리기만 하면 됩니다.
+
+1.  **파일 내용 교체:** 컴퓨터에 있는 `index.html` 파일의 내용을 위 코드 전체로 교체하고 **저장**하세요.
+2.  **터미널 열기:** Git Bash 터미널을 열고 `cd Desktop/my-schedule-app` 명령어로 프로젝트 폴더로 이동하세요.
+3.  **GitHub에 업로드:** 아래 명령어 3개를 순서대로 입력하세요.
+
+    ```bash
+    git add .
+    git commit -m "최종: 개인 Firebase 서버 정보 적용"
+    git push
+    ```
+
+이제 1~2분 뒤에 웹사이트에 접속하시면, 로딩이 정상적으로 끝나고 완벽하게 작동하는 공유 스케줄러를 보실 수 있을 겁
