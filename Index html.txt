@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025년 스케줄 관리</title>
+    <!-- Tailwind CSS를 불러와서 예쁘게 꾸며줍니다. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts에서 'Noto Sans KR' 폰트를 불러옵니다. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Noto Sans KR 폰트를 기본 폰트로 설정합니다. */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 스크롤바를 약간 꾸며줍니다. */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #a0aec0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background-color: #edf2f7;
+        }
+        /* 모달이 부드럽게 나타나고 사라지게 합니다. */
+        .modal-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .modal-visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <!-- 전체 앱을 감싸는 컨테이너 -->
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        
+        <!-- 헤더: 월, 년도, 그리고 이전/다음달 버튼 -->
+        <div class="flex items-center justify-between mb-6">
+            <button id="prev-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h1 id="calendar-title" class="text-2xl md:text-3xl font-bold text-center"></h1>
+            <button id="next-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+
+        <!-- 메인 영역: 달력과 스케줄 목록 -->
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- 왼쪽: 달력 -->
+            <div class="w-full md:w-2/3">
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1">
+                    <!-- 요일 헤더 (일, 월, 화, 수, 목, 금, 토) -->
+                </div>
+                <div id="calendar-dates" class="grid grid-cols-7 gap-1 mt-2">
+                    <!-- 날짜가 여기에 동적으로 생성됩니다. -->
+                </div>
+            </div>
+
+            <!-- 오른쪽: 선택된 날짜의 스케줄 -->
+            <div class="w-full md:w-1/3 border-t-2 md:border-t-0 md:border-l-2 border-gray-200 pt-6 md:pt-0 md:pl-6">
+                <h2 id="schedule-title" class="text-xl font-semibold mb-4">날짜를 선택하세요</h2>
+                <div id="schedule-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    <!-- 스케줄이 여기에 표시됩니다. -->
+                </div>
+                <button id="add-schedule-btn" class="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors font-semibold shadow hidden">
+                    일정 추가하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 일정 추가 모달 (팝업창) -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal-transition modal-hidden">
+        <div id="modal" class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <h3 class="text-2xl font-bold mb-6">새 일정 추가</h3>
+            <form id="schedule-form">
+                <div class="mb-4">
+                    <label for="event-time" class="block text-sm font-medium text-gray-700 mb-1">시간</label>
+                    <input type="time" id="event-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="event-text" class="block text-sm font-medium text-gray-700 mb-1">내용</label>
+                    <input type="text" id="event-text" placeholder="예: 프로젝트 회의" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 전역 변수 및 요소 선택 ---
+        // 이 부분은 웹페이지의 여러 부분(DOM 요소)을 자바스크립트에서 쉽게 사용할 수 있도록 변수에 저장하는 곳입니다.
+        const calendarTitle = document.getElementById('calendar-title');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const calendarDates = document.getElementById('calendar-dates');
+        const scheduleTitle = document.getElementById('schedule-title');
+        const scheduleList = document.getElementById('schedule-list');
+        const addScheduleBtn = document.getElementById('add-schedule-btn');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        
+        // 모달 관련 요소
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modal = document.getElementById('modal');
+        const scheduleForm = document.getElementById('schedule-form');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const eventTimeInput = document.getElementById('event-time');
+        const eventTextInput = document.getElementById('event-text');
+
+        // --- 상태 관리 ---
+        // 현재 날짜, 선택된 날짜, 그리고 모든 일정을 관리하는 변수들입니다.
+        let currentDate = new Date(2025, 0, 1); // 2025년 1월 1일로 시작
+        let selectedDate = null;
+        // localStorage에서 저장된 일정을 불러오거나, 없으면 빈 객체로 시작합니다.
+        // 이렇게 하면 브라우저를 껐다 켜도 일정이 사라지지 않습니다.
+        let schedules = JSON.parse(localStorage.getItem('schedules_2025')) || {};
+
+        // --- 함수 정의 ---
+
+        /**
+         * 달력을 화면에 그리는 함수
+         */
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // 헤더에 '2025년 1월' 같은 형식으로 표시
+            calendarTitle.textContent = `${year}년 ${month + 1}월`;
+
+            // 달력 날짜 부분 초기화
+            calendarDates.innerHTML = '';
+            
+            // 요일 헤더 그리기 (한 번만 실행)
+            if (calendarGrid.children.length === 0) {
+                const days = ['일', '월', '화', '수', '목', '금', '토'];
+                days.forEach(day => {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'text-center font-semibold text-gray-600';
+                    if (day === '일') dayEl.classList.add('text-red-500');
+                    if (day === '토') dayEl.classList.add('text-blue-500');
+                    dayEl.textContent = day;
+                    calendarGrid.appendChild(dayEl);
+                });
+            }
+
+            // 이번 달의 첫 날과 마지막 날 계산
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+
+            // 달력의 첫 날짜 앞에 빈 칸 채우기
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyEl = document.createElement('div');
+                calendarDates.appendChild(emptyEl);
+            }
+
+            // 1일부터 마지막 날짜까지 날짜 채우기
+            for (let date = 1; date <= lastDateOfMonth; date++) {
+                const dateEl = document.createElement('button');
+                dateEl.className = 'text-center p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300';
+                dateEl.textContent = date;
+                
+                const dateString = `${year}-${month + 1}-${date}`;
+
+                // 오늘 날짜 표시
+                const today = new Date();
+                if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
+                    dateEl.classList.add('bg-blue-500', 'text-white', 'font-bold');
+                } else {
+                    dateEl.classList.add('hover:bg-gray-200');
+                }
+
+                // 선택된 날짜 표시
+                if (selectedDate && dateString === selectedDate) {
+                    dateEl.classList.add('bg-blue-200', 'ring-2', 'ring-blue-400');
+                    dateEl.classList.remove('hover:bg-gray-200');
+                }
+
+                // 일정이 있는 날짜에 점 표시
+                if (schedules[dateString] && schedules[dateString].length > 0) {
+                    const dot = document.createElement('div');
+                    dot.className = 'mx-auto mt-1 w-1.5 h-1.5 bg-red-500 rounded-full';
+                    dateEl.appendChild(dot);
+                }
+
+                // 날짜 클릭 이벤트
+                dateEl.onclick = () => {
+                    selectedDate = dateString;
+                    renderCalendar(); // 선택된 날짜 스타일 업데이트를 위해 다시 렌더링
+                    renderSchedules();
+                };
+                calendarDates.appendChild(dateEl);
+            }
+        }
+
+        /**
+         * 선택된 날짜의 일정을 화면에 그리는 함수
+         */
+        function renderSchedules() {
+            if (!selectedDate) {
+                scheduleTitle.textContent = '날짜를 선택하세요';
+                scheduleList.innerHTML = '<p class="text-gray-500">달력에서 날짜를 클릭하면 일정을 볼 수 있습니다.</p>';
+                addScheduleBtn.classList.add('hidden');
+                return;
+            }
+
+            const [year, month, day] = selectedDate.split('-');
+            scheduleTitle.textContent = `${month}월 ${day}일의 일정`;
+            scheduleList.innerHTML = '';
+            addScheduleBtn.classList.remove('hidden');
+
+            const daySchedules = schedules[selectedDate] || [];
+            
+            if (daySchedules.length === 0) {
+                scheduleList.innerHTML = '<p class="text-gray-500">아직 등록된 일정이 없습니다.</p>';
+            } else {
+                // 시간을 기준으로 일정 정렬
+                daySchedules.sort((a, b) => a.time.localeCompare(b.time));
+
+                daySchedules.forEach((schedule, index) => {
+                    const scheduleItem = document.createElement('div');
+                    scheduleItem.className = 'p-3 bg-blue-50 rounded-lg flex items-center justify-between animate-fade-in';
+                    
+                    scheduleItem.innerHTML = `
+                        <div>
+                            <p class="font-bold text-blue-800">${schedule.time}</p>
+                            <p class="text-gray-700">${escapeHtml(schedule.event)}</p>
+                        </div>
+                        <button data-index="${index}" class="delete-btn p-1.5 rounded-full hover:bg-red-200 text-red-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    `;
+                    scheduleList.appendChild(scheduleItem);
+                });
+            }
+        }
+
+        /**
+         * 일정을 저장하고 화면을 다시 그리는 함수
+         */
+        function saveAndRender() {
+            localStorage.setItem('schedules_2025', JSON.stringify(schedules));
+            renderCalendar();
+            renderSchedules();
+        }
+
+        /**
+         * 모달(팝업)을 여는 함수
+         */
+        function openModal() {
+            modalBackdrop.classList.remove('modal-hidden');
+            modalBackdrop.classList.add('modal-visible');
+        }
+
+        /**
+         * 모달(팝업)을 닫는 함수
+         */
+        function closeModal() {
+            modalBackdrop.classList.add('modal-hidden');
+            modalBackdrop.classList.remove('modal-visible');
+            scheduleForm.reset(); // 폼 초기화
+        }
+
+        /**
+         * HTML 태그를 문자로 변환하여 보안 문제를 방지하는 함수
+         */
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        // --- 이벤트 리스너 설정 ---
+        // 버튼 클릭이나 폼 제출 같은 사용자 행동에 반응하는 부분입니다.
+
+        // 이전 달, 다음 달 버튼
+        prevMonthBtn.onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            // 2025년 범위 제한
+            if (currentDate.getFullYear() < 2025) currentDate.setFullYear(2025, 0);
+            renderCalendar();
+        };
+
+        nextMonthBtn.onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            // 2025년 범위 제한
+            if (currentDate.getFullYear() > 2025) currentDate.setFullYear(2025, 11);
+            renderCalendar();
+        };
+
+        // '일정 추가하기' 버튼 클릭
+        addScheduleBtn.onclick = openModal;
+        
+        // 모달의 '취소' 버튼 클릭 또는 배경 클릭
+        cancelBtn.onclick = closeModal;
+        modalBackdrop.onclick = (e) => {
+            if (e.target === modalBackdrop) {
+                closeModal();
+            }
+        };
+
+        // 키보드 Esc 키로 모달 닫기
+        window.onkeydown = (e) => {
+            if (e.key === 'Escape' && modalBackdrop.classList.contains('modal-visible')) {
+                closeModal();
+            }
+        };
+
+        // 일정 추가 폼 제출
+        scheduleForm.onsubmit = (e) => {
+            e.preventDefault(); // 폼의 기본 제출 동작(새로고침)을 막음
+            const newSchedule = {
+                time: eventTimeInput.value,
+                event: eventTextInput.value
+            };
+
+            if (!schedules[selectedDate]) {
+                schedules[selectedDate] = [];
+            }
+            schedules[selectedDate].push(newSchedule);
+            
+            saveAndRender();
+            closeModal();
+        };
+
+        // 일정 삭제 (이벤트 위임 사용)
+        scheduleList.onclick = (e) => {
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                const index = parseInt(deleteBtn.dataset.index, 10);
+                schedules[selectedDate].splice(index, 1);
+                
+                // 만약 해당 날짜의 일정이 모두 삭제되면, schedules 객체에서 해당 날짜 키를 제거
+                if (schedules[selectedDate].length === 0) {
+                    delete schedules[selectedDate];
+                }
+                
+                saveAndRender();
+            }
+        };
+
+        // --- 초기 실행 ---
+        // 페이지가 처음 로드될 때 달력을 그립니다.
+        renderCalendar();
+        renderSchedules();
+    </script>
+</body>
+</html>
