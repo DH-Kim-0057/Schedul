@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025년 스케줄 관리</title>
+    <title>공유 스케줄 관리 (2025)</title>
     <!-- Tailwind CSS를 불러와서 예쁘게 꾸며줍니다. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts에서 'Noto Sans KR' 폰트를 불러옵니다. -->
@@ -11,42 +11,42 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Noto Sans KR 폰트를 기본 폰트로 설정합니다. */
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        /* 스크롤바를 약간 꾸며줍니다. */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #a0aec0;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background-color: #edf2f7;
-        }
-        /* 모달이 부드럽게 나타나고 사라지게 합니다. */
-        .modal-transition {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .modal-hidden {
-            opacity: 0;
-            transform: scale(0.95);
-            pointer-events: none;
-        }
-        .modal-visible {
-            opacity: 1;
-            transform: scale(1);
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #a0aec0; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background-color: #edf2f7; }
+        .modal-transition { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal-hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        .modal-visible { opacity: 1; transform: scale(1); }
+        /* 로딩 중일 때 화면을 덮을 오버레이 */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay">
+        <div class="text-center">
+            <svg class="animate-spin h-10 w-10 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-lg font-semibold text-gray-700">실시간 서버에 연결 중...</p>
+        </div>
+    </div>
+
     <!-- 전체 앱을 감싸는 컨테이너 -->
     <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
         
-        <!-- 헤더: 월, 년도, 그리고 이전/다음달 버튼 -->
         <div class="flex items-center justify-between mb-6">
             <button id="prev-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
@@ -57,32 +57,26 @@
             </button>
         </div>
 
-        <!-- 메인 영역: 달력과 스케줄 목록 -->
         <div class="flex flex-col md:flex-row gap-8">
-            <!-- 왼쪽: 달력 -->
             <div class="w-full md:w-2/3">
-                <div id="calendar-grid" class="grid grid-cols-7 gap-1">
-                    <!-- 요일 헤더 (일, 월, 화, 수, 목, 금, 토) -->
-                </div>
-                <div id="calendar-dates" class="grid grid-cols-7 gap-1 mt-2">
-                    <!-- 날짜가 여기에 동적으로 생성됩니다. -->
-                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+                <div id="calendar-dates" class="grid grid-cols-7 gap-1 mt-2"></div>
             </div>
 
-            <!-- 오른쪽: 선택된 날짜의 스케줄 -->
             <div class="w-full md:w-1/3 border-t-2 md:border-t-0 md:border-l-2 border-gray-200 pt-6 md:pt-0 md:pl-6">
                 <h2 id="schedule-title" class="text-xl font-semibold mb-4">날짜를 선택하세요</h2>
-                <div id="schedule-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
-                    <!-- 스케줄이 여기에 표시됩니다. -->
-                </div>
+                <div id="schedule-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
                 <button id="add-schedule-btn" class="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors font-semibold shadow hidden">
                     일정 추가하기
                 </button>
             </div>
         </div>
+        <div class="text-center text-xs text-gray-400 mt-4">
+            <p>나의 고유 ID: <span id="user-id" class="font-mono">연결 중...</span></p>
+        </div>
     </div>
 
-    <!-- 일정 추가 모달 (팝업창) -->
+    <!-- 일정 추가 모달 -->
     <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal-transition modal-hidden">
         <div id="modal" class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
             <h3 class="text-2xl font-bold mb-6">새 일정 추가</h3>
@@ -93,7 +87,7 @@
                 </div>
                 <div class="mb-6">
                     <label for="event-text" class="block text-sm font-medium text-gray-700 mb-1">내용</label>
-                    <input type="text" id="event-text" placeholder="예: 프로젝트 회의" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="event-text" placeholder="예: 팀 전체 회의" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 <div class="flex justify-end gap-4">
                     <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">취소</button>
@@ -103,7 +97,13 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDK 추가 -->
+    <script type="module">
+        // Firebase 모듈 가져오기
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // --- 전역 변수 및 요소 선택 ---
         const calendarTitle = document.getElementById('calendar-title');
         const calendarGrid = document.getElementById('calendar-grid');
@@ -113,39 +113,108 @@
         const addScheduleBtn = document.getElementById('add-schedule-btn');
         const prevMonthBtn = document.getElementById('prev-month');
         const nextMonthBtn = document.getElementById('next-month');
-        
         const modalBackdrop = document.getElementById('modal-backdrop');
-        const modal = document.getElementById('modal');
         const scheduleForm = document.getElementById('schedule-form');
         const cancelBtn = document.getElementById('cancel-btn');
         const eventTimeInput = document.getElementById('event-time');
         const eventTextInput = document.getElementById('event-text');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const userIdSpan = document.getElementById('user-id');
 
         // --- 상태 관리 ---
-        // 현재 날짜, 선택된 날짜, 그리고 모든 일정을 관리하는 변수들입니다.
-        let currentDate = new Date(); // 오늘 날짜로 시작
-        // 2025년이 아니면 2025년 1월 1일로 강제 설정하여 '2025년 스케줄러'의 목적을 유지합니다.
+        let currentDate = new Date();
         if (currentDate.getFullYear() !== 2025) {
             currentDate = new Date(2025, 0, 1);
         }
 
         const todayForSelection = new Date();
         let selectedDate = null;
-        // 페이지 로드 시 오늘이 2025년이라면, 오늘 날짜를 기본으로 선택합니다.
         if (todayForSelection.getFullYear() === 2025) {
             const year = todayForSelection.getFullYear();
             const month = todayForSelection.getMonth() + 1;
             const date = todayForSelection.getDate();
-            selectedDate = `${year}-${month}-${date}`;
+            selectedDate = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
         }
         
-        let schedules = JSON.parse(localStorage.getItem('schedules_2025')) || {};
+        // 로컬 스토리지 대신, 실시간으로 채워질 객체
+        let schedules = {};
+        
+        // Firebase 관련 변수
+        let db, auth;
+        let schedulesCollection;
+        let unsubscribeSchedules; // 실시간 리스너 구독 해제 함수
 
-        // --- 함수 정의 ---
+        // --- Firebase 초기화 및 실시간 데이터 연결 ---
+        
+        // 이 코드는 Canvas 환경에서 자동으로 제공되는 설정값을 사용합니다.
+        // 직접 호스팅하려면 이 부분을 자신의 Firebase 프로젝트 설정으로 바꿔야 합니다.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            // 공용 스케줄을 저장할 컬렉션 경로 설정
+            const collectionPath = `/artifacts/${appId}/public/data/schedules_shared`;
+            schedulesCollection = collection(db, collectionPath);
+
+            // 사용자가 로그인(인증) 상태인지 확인
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // 사용자가 로그인 되어 있으면 (익명 포함)
+                    userIdSpan.textContent = user.uid;
+                    // 실시간 데이터 감지 시작
+                    listenToSchedules();
+                } else {
+                    // 로그인 되어있지 않으면 익명으로 로그인 시도
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (token) {
+                        signInWithCustomToken(auth, token).catch(e => {
+                            console.error("Custom token sign-in failed:", e);
+                            signInAnonymously(auth); // 실패 시 익명으로 재시도
+                        });
+                    } else {
+                        signInAnonymously(auth).catch(e => console.error("Anonymous sign-in failed:", e));
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error("Firebase 초기화 실패:", e);
+            loadingOverlay.innerHTML = "<p>서버 연결에 실패했습니다. 페이지를 새로고침 해주세요.</p>";
+        }
 
         /**
-         * 달력을 화면에 그리는 함수
+         * Firestore 데이터베이스의 변경사항을 실시간으로 감지하는 함수
          */
+        function listenToSchedules() {
+            // 이전에 설정된 리스너가 있다면 중복 실행을 막기 위해 해제
+            if (unsubscribeSchedules) unsubscribeSchedules();
+
+            unsubscribeSchedules = onSnapshot(schedulesCollection, (snapshot) => {
+                schedules = {}; // 기존 로컬 데이터 초기화
+                snapshot.forEach((doc) => {
+                    // 문서 ID(날짜)와 데이터를 schedules 객체에 저장
+                    schedules[doc.id] = doc.data().events;
+                });
+                
+                // 데이터 로딩이 완료되면 로딩 화면을 숨김
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => loadingOverlay.style.display = 'none', 300);
+
+                // 화면 다시 그리기
+                renderCalendar();
+                renderSchedules();
+            }, (error) => {
+                console.error("데이터 수신 오류:", error);
+                loadingOverlay.innerHTML = "<p>데이터를 불러오는 데 실패했습니다.</p>";
+            });
+        }
+
+        // --- 기존 함수들 (일부 수정됨) ---
+
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -169,8 +238,7 @@
             const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDayOfMonth; i++) {
-                const emptyEl = document.createElement('div');
-                calendarDates.appendChild(emptyEl);
+                calendarDates.appendChild(document.createElement('div'));
             }
 
             for (let date = 1; date <= lastDateOfMonth; date++) {
@@ -178,7 +246,7 @@
                 dateEl.className = 'text-center p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300';
                 dateEl.textContent = date;
                 
-                const dateString = `${year}-${month + 1}-${date}`;
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
 
                 const today = new Date();
                 if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
@@ -207,9 +275,6 @@
             }
         }
 
-        /**
-         * 선택된 날짜의 일정을 화면에 그리는 함수
-         */
         function renderSchedules() {
             if (!selectedDate) {
                 scheduleTitle.textContent = '날짜를 선택하세요';
@@ -219,7 +284,7 @@
             }
 
             const [year, month, day] = selectedDate.split('-');
-            scheduleTitle.textContent = `${month}월 ${day}일의 일정`;
+            scheduleTitle.textContent = `${parseInt(month)}월 ${parseInt(day)}일의 일정`;
             scheduleList.innerHTML = '';
             addScheduleBtn.classList.remove('hidden');
 
@@ -240,7 +305,7 @@
                             <p class="text-gray-700">${escapeHtml(schedule.event)}</p>
                         </div>
                         <button data-index="${index}" class="delete-btn p-1.5 rounded-full hover:bg-red-200 text-red-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     `;
                     scheduleList.appendChild(scheduleItem);
@@ -248,42 +313,23 @@
             }
         }
 
-        /**
-         * 일정을 저장하고 화면을 다시 그리는 함수
-         */
-        function saveAndRender() {
-            localStorage.setItem('schedules_2025', JSON.stringify(schedules));
-            renderCalendar();
-            renderSchedules();
-        }
-
-        /**
-         * 모달(팝업)을 여는 함수
-         */
         function openModal() {
             modalBackdrop.classList.remove('modal-hidden');
             modalBackdrop.classList.add('modal-visible');
         }
 
-        /**
-         * 모달(팝업)을 닫는 함수
-         */
         function closeModal() {
             modalBackdrop.classList.add('modal-hidden');
             modalBackdrop.classList.remove('modal-visible');
             scheduleForm.reset();
         }
 
-        /**
-         * HTML 태그를 문자로 변환하여 보안 문제를 방지하는 함수
-         */
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.appendChild(document.createTextNode(str));
             return div.innerHTML;
         }
 
-        // --- 이벤트 리스너 설정 ---
         prevMonthBtn.onclick = () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             if (currentDate.getFullYear() < 2025) currentDate.setFullYear(2025, 0);
@@ -297,53 +343,82 @@
         };
 
         addScheduleBtn.onclick = openModal;
-        
         cancelBtn.onclick = closeModal;
         modalBackdrop.onclick = (e) => {
-            if (e.target === modalBackdrop) {
-                closeModal();
-            }
+            if (e.target === modalBackdrop) closeModal();
         };
-
         window.onkeydown = (e) => {
-            if (e.key === 'Escape' && modalBackdrop.classList.contains('modal-visible')) {
-                closeModal();
-            }
+            if (e.key === 'Escape' && modalBackdrop.classList.contains('modal-visible')) closeModal();
         };
 
-        scheduleForm.onsubmit = (e) => {
+        // --- Firebase와 연동된 새로운 이벤트 핸들러 ---
+
+        /**
+         * 새 일정을 Firestore에 저장하는 함수
+         */
+        scheduleForm.onsubmit = async (e) => {
             e.preventDefault();
+            if (!selectedDate) return;
+
             const newSchedule = {
                 time: eventTimeInput.value,
-                event: eventTextInput.value
+                event: eventTextInput.value,
+                // 각 일정을 고유하게 식별하기 위한 id 추가
+                id: Date.now().toString() 
             };
-
-            if (!schedules[selectedDate]) {
-                schedules[selectedDate] = [];
-            }
-            schedules[selectedDate].push(newSchedule);
             
-            saveAndRender();
-            closeModal();
+            // 해당 날짜의 문서 참조
+            const dayDocRef = doc(schedulesCollection, selectedDate);
+
+            try {
+                const docSnap = await getDoc(dayDocRef);
+                if (docSnap.exists()) {
+                    // 문서가 이미 있으면, events 배열에 새 일정 추가 (업데이트)
+                    const existingEvents = docSnap.data().events || [];
+                    await updateDoc(dayDocRef, {
+                        events: [...existingEvents, newSchedule]
+                    });
+                } else {
+                    // 문서가 없으면, 새 문서를 생성
+                    await setDoc(dayDocRef, {
+                        events: [newSchedule]
+                    });
+                }
+                closeModal();
+            } catch (error) {
+                console.error("일정 저장 오류:", error);
+                alert("일정 저장에 실패했습니다.");
+            }
         };
 
-        scheduleList.onclick = (e) => {
+        /**
+         * Firestore에서 일정을 삭제하는 함수
+         */
+        scheduleList.onclick = async (e) => {
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
-                const index = parseInt(deleteBtn.dataset.index, 10);
-                schedules[selectedDate].splice(index, 1);
-                
-                if (schedules[selectedDate].length === 0) {
-                    delete schedules[selectedDate];
+                if (!selectedDate || !confirm("정말로 이 일정을 삭제하시겠습니까?")) return;
+
+                const indexToDelete = parseInt(deleteBtn.dataset.index, 10);
+                const dayDocRef = doc(schedulesCollection, selectedDate);
+
+                try {
+                    const docSnap = await getDoc(dayDocRef);
+                    if (docSnap.exists()) {
+                        let events = docSnap.data().events || [];
+                        // 인덱스를 사용해 배열에서 해당 일정 제거
+                        events.splice(indexToDelete, 1);
+                        
+                        // 수정된 배열로 문서 업데이트
+                        await updateDoc(dayDocRef, { events: events });
+                    }
+                } catch (error) {
+                    console.error("일정 삭제 오류:", error);
+                    alert("일정 삭제에 실패했습니다.");
                 }
-                
-                saveAndRender();
             }
         };
 
-        // --- 초기 실행 ---
-        renderCalendar();
-        renderSchedules();
     </script>
 </body>
 </html>
