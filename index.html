@@ -138,38 +138,29 @@
         
         let schedules = {};
         
-        // Firebase 관련 변수
-        let db, auth;
-        let schedulesCollection;
-        let unsubscribeSchedules;
+// ... (이전 코드)
+// --- Firebase 초기화 및 실시간 데이터 연결 ---
 
-        // --- Firebase 초기화 및 실시간 데이터 연결 ---
-        
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCJ6ofXvdg4gkls6IpKenKVY89VHZWShIs",
-  authDomain: "schedule-f8b8a.firebaseapp.com",
-  projectId: "schedule-f8b8a",
-  storageBucket: "schedule-f8b8a.firebasestorage.app",
-  messagingSenderId: "532907936890",
-  appId: "1:532907936890:web:5b516654ba72d3f5a77fc3",
-  measurementId: "G-RZC9V7L6TS"
-};
-
-
+        // =======================================================================
+        // 중요! 여기에 자신의 Firebase 프로젝트 설정 정보를 붙여넣으세요.
+        // 이 설정 정보는 Firebase 사이트에서 직접 만드셔야 합니다.
+        // 자세한 방법은 함께 제공된 가이드를 참고하세요.
+        // =======================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJ6ofXvdg4gkls6IpKenKVY89VHZWShIs",
+            authDomain: "schedule-f8b8a.firebaseapp.com",
+            projectId: "schedule-f8b8a",
+            storageBucket: "schedule-f8b8a.appspot.com", // .firebasestorage.app 이 아니라 .appspot.com 입니다.
+            messagingSenderId: "532907936890",
+            appId: "1:532907936890:web:5b516654ba72d3f5a77fc3",
+            measurementId: "G-RZC9V7L6TS"
+        };
+        // =======================================================================
 
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            
             const appId = firebaseConfig.projectId;
             const collectionPath = `/artifacts/${appId}/public/data/schedules_shared`;
             schedulesCollection = collection(db, collectionPath);
