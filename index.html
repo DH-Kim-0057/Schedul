@@ -45,7 +45,7 @@
     </div>
 
     <!-- 전체 앱을 감싸는 컨테이너 -->
-    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+    <div class="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
         
         <div class="flex items-center justify-between mb-6">
             <button id="prev-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
@@ -57,15 +57,15 @@
             </button>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-8">
-            <div class="w-full md:w-2/3">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-2/3">
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
                 <div id="calendar-dates" class="grid grid-cols-7 gap-1 mt-2"></div>
             </div>
 
-            <div class="w-full md:w-1/3 border-t-2 md:border-t-0 md:border-l-2 border-gray-200 pt-6 md:pt-0 md:pl-6">
+            <div class="w-full lg:w-1/3 border-t-2 lg:border-t-0 lg:border-l-2 border-gray-200 pt-6 lg:pt-0 lg:pl-6">
                 <h2 id="schedule-title" class="text-xl font-semibold mb-4">날짜를 선택하세요</h2>
-                <div id="schedule-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
+                <div id="schedule-list" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
                 <button id="add-schedule-btn" class="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors font-semibold shadow hidden">
                     일정 추가하기
                 </button>
@@ -199,6 +199,9 @@
             });
         }
 
+        /**
+         * 달력을 화면에 그리는 함수 (일정 표시 기능 추가)
+         */
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -210,7 +213,7 @@
                 const days = ['일', '월', '화', '수', '목', '금', '토'];
                 days.forEach(day => {
                     const dayEl = document.createElement('div');
-                    dayEl.className = 'text-center font-semibold text-gray-600';
+                    dayEl.className = 'text-center font-semibold text-sm text-gray-600';
                     if (day === '일') dayEl.classList.add('text-red-500');
                     if (day === '토') dayEl.classList.add('text-blue-500');
                     dayEl.textContent = day;
@@ -227,28 +230,52 @@
 
             for (let date = 1; date <= lastDateOfMonth; date++) {
                 const dateEl = document.createElement('button');
-                dateEl.className = 'text-center p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300';
-                dateEl.textContent = date;
+                // 날짜 칸의 높이와 레이아웃을 조정합니다.
+                dateEl.className = 'relative flex flex-col p-2 h-28 border border-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-left';
                 
                 const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
 
+                // 날짜 숫자
+                const dateNumber = document.createElement('span');
+                dateNumber.className = 'font-semibold';
+                dateNumber.textContent = date;
+                
                 const today = new Date();
                 if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
-                    dateEl.classList.add('bg-blue-500', 'text-white', 'font-bold');
-                } else {
-                    dateEl.classList.add('hover:bg-gray-200');
+                    dateNumber.classList.add('bg-blue-500', 'text-white', 'rounded-full', 'w-7', 'h-7', 'flex', 'items-center', 'justify-center');
                 }
 
+                dateEl.appendChild(dateNumber);
+
+                // 선택된 날짜 스타일
                 if (selectedDate && dateString === selectedDate) {
-                    dateEl.classList.add('bg-blue-200', 'ring-2', 'ring-blue-400');
-                    dateEl.classList.remove('hover:bg-gray-200', 'bg-blue-500', 'text-white');
+                    dateEl.classList.add('bg-blue-50', 'ring-2', 'ring-blue-400');
+                } else {
+                    dateEl.classList.add('hover:bg-gray-50');
                 }
 
+                // 일정 컨테이너
+                const scheduleContainer = document.createElement('div');
+                scheduleContainer.className = 'mt-1 space-y-1 text-xs overflow-hidden flex-grow';
+
+                // 일정이 있으면 컨테이너에 추가
                 if (schedules[dateString] && schedules[dateString].length > 0) {
-                    const dot = document.createElement('div');
-                    dot.className = 'mx-auto mt-1 w-1.5 h-1.5 bg-red-500 rounded-full';
-                    dateEl.appendChild(dot);
+                    schedules[dateString].slice(0, 2).forEach(schedule => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded truncate font-medium';
+                        eventEl.textContent = schedule.event;
+                        scheduleContainer.appendChild(eventEl);
+                    });
+                    
+                    if (schedules[dateString].length > 2) {
+                        const moreEl = document.createElement('div');
+                        moreEl.className = 'text-center text-gray-500 text-xs';
+                        moreEl.textContent = '...';
+                        scheduleContainer.appendChild(moreEl);
+                    }
                 }
+                
+                dateEl.appendChild(scheduleContainer);
 
                 dateEl.onclick = () => {
                     selectedDate = dateString;
