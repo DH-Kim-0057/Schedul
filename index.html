@@ -31,7 +31,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-2 sm:p-4">
 
     <!-- 로딩 오버레이 -->
     <div id="loading-overlay">
@@ -45,13 +45,13 @@
     </div>
 
     <!-- 전체 앱을 감싸는 컨테이너 -->
-    <div class="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+    <div class="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-4 md:p-8">
         
         <div class="flex items-center justify-between mb-6">
             <button id="prev-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
-            <h1 id="calendar-title" class="text-2xl md:text-3xl font-bold text-center"></h1>
+            <h1 id="calendar-title" class="text-xl md:text-3xl font-bold text-center"></h1>
             <button id="next-month" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             </button>
@@ -59,7 +59,7 @@
 
         <div class="flex flex-col lg:flex-row gap-8">
             <div class="w-full lg:w-2/3">
-                <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-xs sm:text-sm"></div>
                 <div id="calendar-dates" class="grid grid-cols-7 gap-1 mt-2"></div>
             </div>
 
@@ -200,7 +200,7 @@
         }
 
         /**
-         * 달력을 화면에 그리는 함수 (일정 표시 기능 추가)
+         * 달력을 화면에 그리는 함수 (모바일 반응형으로 개선)
          */
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -213,7 +213,7 @@
                 const days = ['일', '월', '화', '수', '목', '금', '토'];
                 days.forEach(day => {
                     const dayEl = document.createElement('div');
-                    dayEl.className = 'text-center font-semibold text-sm text-gray-600';
+                    dayEl.className = 'text-center font-semibold text-gray-600';
                     if (day === '일') dayEl.classList.add('text-red-500');
                     if (day === '토') dayEl.classList.add('text-blue-500');
                     dayEl.textContent = day;
@@ -230,19 +230,19 @@
 
             for (let date = 1; date <= lastDateOfMonth; date++) {
                 const dateEl = document.createElement('button');
-                // 날짜 칸의 높이와 레이아웃을 조정합니다.
-                dateEl.className = 'relative flex flex-col p-2 h-28 border border-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-left';
+                // 날짜 칸의 높이와 레이아웃을 반응형으로 조정합니다.
+                dateEl.className = 'relative flex flex-col p-1 md:p-2 h-16 sm:h-20 md:h-28 border border-gray-200 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 text-left';
                 
                 const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
 
                 // 날짜 숫자
                 const dateNumber = document.createElement('span');
-                dateNumber.className = 'font-semibold';
+                dateNumber.className = 'font-semibold text-sm';
                 dateNumber.textContent = date;
                 
                 const today = new Date();
                 if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
-                    dateNumber.classList.add('bg-blue-500', 'text-white', 'rounded-full', 'w-7', 'h-7', 'flex', 'items-center', 'justify-center');
+                    dateNumber.classList.add('bg-blue-500', 'text-white', 'rounded-full', 'w-6', 'h-6', 'flex', 'items-center', 'justify-center');
                 }
 
                 dateEl.appendChild(dateNumber);
@@ -254,28 +254,45 @@
                     dateEl.classList.add('hover:bg-gray-50');
                 }
 
-                // 일정 컨테이너
-                const scheduleContainer = document.createElement('div');
-                scheduleContainer.className = 'mt-1 space-y-1 text-xs overflow-hidden flex-grow';
+                // 일정 표시를 위한 컨테이너
+                const eventsWrapper = document.createElement('div');
+                eventsWrapper.className = 'mt-1 flex-grow overflow-hidden';
 
-                // 일정이 있으면 컨테이너에 추가
                 if (schedules[dateString] && schedules[dateString].length > 0) {
+                    // 모바일용 점(dot) 표시
+                    const dotContainer = document.createElement('div');
+                    dotContainer.className = 'flex flex-wrap justify-start items-center gap-1 md:hidden'; // 모바일에서 보임
+                    schedules[dateString].slice(0, 4).forEach(() => {
+                        const dot = document.createElement('div');
+                        dot.className = 'w-1.5 h-1.5 bg-blue-500 rounded-full';
+                        dotContainer.appendChild(dot);
+                    });
+                     if (schedules[dateString].length > 4) {
+                        const moreDot = document.createElement('div');
+                        moreDot.className = 'w-1.5 h-1.5 bg-gray-400 rounded-full';
+                        dotContainer.appendChild(moreDot);
+                    }
+                    eventsWrapper.appendChild(dotContainer);
+
+                    // 데스크톱용 텍스트 표시
+                    const textContainer = document.createElement('div');
+                    textContainer.className = 'hidden md:block space-y-1 text-xs'; // 데스크톱에서 보임
                     schedules[dateString].slice(0, 2).forEach(schedule => {
                         const eventEl = document.createElement('div');
                         eventEl.className = 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded truncate font-medium';
                         eventEl.textContent = schedule.event;
-                        scheduleContainer.appendChild(eventEl);
+                        textContainer.appendChild(eventEl);
                     });
-                    
                     if (schedules[dateString].length > 2) {
                         const moreEl = document.createElement('div');
                         moreEl.className = 'text-center text-gray-500 text-xs';
                         moreEl.textContent = '...';
-                        scheduleContainer.appendChild(moreEl);
+                        textContainer.appendChild(moreEl);
                     }
+                    eventsWrapper.appendChild(textContainer);
                 }
                 
-                dateEl.appendChild(scheduleContainer);
+                dateEl.appendChild(eventsWrapper);
 
                 dateEl.onclick = () => {
                     selectedDate = dateString;
