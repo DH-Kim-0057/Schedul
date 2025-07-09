@@ -302,21 +302,39 @@
                     eventsWrapper.appendChild(holidayEl);
                 }
 
-                // 일정 표시 (점) - 모든 화면 크기에서 동일하게
+                // 일정 표시 - PC/모바일 분리
                 if (schedules[dateString] && schedules[dateString].length > 0) {
+                    // 모바일용 점(dot) 표시
                     const dotContainer = document.createElement('div');
-                    dotContainer.className = 'flex flex-wrap justify-start items-center gap-1 mt-1';
-                    schedules[dateString].slice(0, 5).forEach(() => {
+                    dotContainer.className = 'flex flex-wrap justify-start items-center gap-1 md:hidden'; // 모바일에서 보임
+                    schedules[dateString].slice(0, 4).forEach(() => {
                         const dot = document.createElement('div');
                         dot.className = 'w-1.5 h-1.5 bg-blue-500 rounded-full';
                         dotContainer.appendChild(dot);
                     });
-                     if (schedules[dateString].length > 5) {
+                     if (schedules[dateString].length > 4) {
                         const moreDot = document.createElement('div');
                         moreDot.className = 'w-1.5 h-1.5 bg-gray-400 rounded-full';
                         dotContainer.appendChild(moreDot);
                     }
                     eventsWrapper.appendChild(dotContainer);
+
+                    // 데스크톱용 텍스트 표시
+                    const textContainer = document.createElement('div');
+                    textContainer.className = 'hidden md:block space-y-1 text-xs'; // 데스크톱에서 보임
+                    schedules[dateString].slice(0, 2).forEach(schedule => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded truncate font-medium';
+                        eventEl.textContent = schedule.event;
+                        textContainer.appendChild(eventEl);
+                    });
+                    if (schedules[dateString].length > 2) {
+                        const moreEl = document.createElement('div');
+                        moreEl.className = 'text-center text-gray-500 text-xs';
+                        moreEl.textContent = '...';
+                        textContainer.appendChild(moreEl);
+                    }
+                    eventsWrapper.appendChild(textContainer);
                 }
                 
                 dateEl.appendChild(eventsWrapper);
