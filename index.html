@@ -13,8 +13,8 @@
     <style>
         body { 
             font-family: 'Noto Sans KR', sans-serif;
-            /* 새로운 은혜로운 하늘 배경 이미지로 교체 */
-            background-image: url('https://images.unsplash.com/photo-1438982059243-86a5a396da42?q=80&w=1740&auto=format&fit=crop');
+            /* 새롭고 은혜로운 하늘 배경 이미지로 교체 */
+            background-image: url('https://images.pexels.com/photos/1531660/pexels-photo-1531660.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
             background-size: cover;
             background-position: center;
             background-attachment: fixed; /* 스크롤해도 배경은 고정되도록 설정 */
@@ -229,7 +229,7 @@
         }
 
         /**
-         * 달력을 화면에 그리는 함수 (공휴일 표시 기능 추가)
+         * 달력을 화면에 그리는 함수 (디자인 개선)
          */
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -294,46 +294,29 @@
                 const eventsWrapper = document.createElement('div');
                 eventsWrapper.className = 'mt-1 flex-grow overflow-hidden';
                 
-                // 공휴일 이름 표시
+                // 공휴일 이름 표시 (데스크톱에서만)
                 if (isHoliday) {
                     const holidayEl = document.createElement('div');
-                    holidayEl.className = 'text-red-500 text-xs truncate font-semibold hidden md:block'; // 데스크톱에서만 보임
+                    holidayEl.className = 'text-red-500 text-xs truncate font-semibold hidden md:block';
                     holidayEl.textContent = holidays[monthDayString];
                     eventsWrapper.appendChild(holidayEl);
                 }
 
+                // 일정 표시 (점) - 모든 화면 크기에서 동일하게
                 if (schedules[dateString] && schedules[dateString].length > 0) {
-                    // 모바일용 점(dot) 표시
                     const dotContainer = document.createElement('div');
-                    dotContainer.className = 'flex flex-wrap justify-start items-center gap-1 md:hidden'; // 모바일에서 보임
-                    schedules[dateString].slice(0, 4).forEach(() => {
+                    dotContainer.className = 'flex flex-wrap justify-start items-center gap-1 mt-1';
+                    schedules[dateString].slice(0, 5).forEach(() => {
                         const dot = document.createElement('div');
                         dot.className = 'w-1.5 h-1.5 bg-blue-500 rounded-full';
                         dotContainer.appendChild(dot);
                     });
-                     if (schedules[dateString].length > 4) {
+                     if (schedules[dateString].length > 5) {
                         const moreDot = document.createElement('div');
                         moreDot.className = 'w-1.5 h-1.5 bg-gray-400 rounded-full';
                         dotContainer.appendChild(moreDot);
                     }
                     eventsWrapper.appendChild(dotContainer);
-
-                    // 데스크톱용 텍스트 표시
-                    const textContainer = document.createElement('div');
-                    textContainer.className = 'hidden md:block space-y-1 text-xs'; // 데스크톱에서 보임
-                    schedules[dateString].slice(0, 2).forEach(schedule => {
-                        const eventEl = document.createElement('div');
-                        eventEl.className = 'px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded truncate font-medium';
-                        eventEl.textContent = schedule.event;
-                        textContainer.appendChild(eventEl);
-                    });
-                    if (schedules[dateString].length > 2) {
-                        const moreEl = document.createElement('div');
-                        moreEl.className = 'text-center text-gray-500 text-xs';
-                        moreEl.textContent = '...';
-                        textContainer.appendChild(moreEl);
-                    }
-                    eventsWrapper.appendChild(textContainer);
                 }
                 
                 dateEl.appendChild(eventsWrapper);
